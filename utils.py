@@ -19,8 +19,9 @@ def featurize(X_raw, device):
     return torch.tensor(list(map(featurize_one, X_raw)), dtype = torch.float, device = device)
 
 def featurize_one(row):
-    return np.concatenate((time_encoding(row[0]),
-                           loc_encoding(row[1]),
+
+    return np.concatenate((loc_encoding1(row[1]),
+                           time_encoding(row[0]),
                            row[2:7],
                            wind_encoding(row[7]),
                            [row[8]],
@@ -39,6 +40,16 @@ def loc_encoding(loc):
             'Townsville', 'MountGambier', 'Nuriootpa', 'Woomera', 'PerthAirport', 'Perth',
             'Hobart', 'AliceSprings', 'Darwin'])
     return np.where(locs == loc, 1, 0)
+
+def loc_encoding1(loc):
+    locs = np.array(['Cobar', 'CoffsHarbour', 'Moree', 'NorfolkIsland', 'Sydney', 'SydneyAirport',
+            'WaggaWagga', 'Williamtown', 'Canberra', 'Sale', 'MelbourneAirport',
+            'Melbourne', 'Mildura', 'Portland', 'Watsonia', 'Brisbane', 'Cairns',
+            'Townsville', 'MountGambier', 'Nuriootpa', 'Woomera', 'PerthAirport', 'Perth',
+            'Hobart', 'AliceSprings', 'Darwin'])
+    
+    return (np.where(locs==loc)[0])
+
 
 def time_encoding(time):
     d = datetime.datetime.strptime(time, '%Y-%m-%d')
