@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
 import os
+#from collections import Counter
 
 def train(model, trainloader, testloader, device, epochs):
     criterion = nn.CrossEntropyLoss()
@@ -39,17 +40,20 @@ def train(model, trainloader, testloader, device, epochs):
         correct, total = test(model, testloader, device)
         print("Validation: %d/%d=%.2f Accuracy."%(correct, total, correct/total))
 
-    return model
+    return model, correct/total
 
 def test(model, dataloader, device):
     correct = 0
     total = 0
     model.eval()
+    #labs = []
     with torch.no_grad():
         for data in dataloader:
             trajectories, labels = data
             outputs = model(trajectories)
             _, predicted = torch.max(outputs.data, 1)
+            #labs.append(predicted)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+    #print(Counter(labs))
     return correct, total

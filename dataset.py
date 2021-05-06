@@ -5,8 +5,8 @@ from utils import load_data
 
 class WeatherDataset(Dataset):
 
-    def __init__(self, interp = False, device = torch.device("cpu")):
-        self.data, self.labels = load_data(interp, device)
+    def __init__(self, interp = False, device = torch.device("cpu"),window_size=1):
+        self.data, self.labels = load_data(interp, device,window_size)
 
     def __getitem__(self, index):
         # TODO: Return x as a stack of the last N observations

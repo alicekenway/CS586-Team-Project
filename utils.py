@@ -6,16 +6,63 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
-def load_data(interp = False, device = torch.device("cpu")):
+
+
+def Sequential_data(X,y,device,window_size=1):
+    item_list = []
+    city_item_list = []
+    item_y = []
+    city_y = []
+    last = 0
+    for i in range(y.shape[0]):
+        if int(X[i,0]) == last:
+            city_item_list.append(X[i,:])
+            city_y.append(y[i])
+            last = int(X[i,0])
+        else:
+            item_list.append(city_item_list)
+            item_y.append(city_y)
+            city_item_list = []
+            city_y = []
+            city_item_list.append(X[i,:])
+            city_y.append(y[i])
+            last = int(X[i,0])
+
+    #print(len(item_y))
+    y_ = []
+    X_ = []
+    for i in range(len(item_list)):
+        
+        for j in range(0,len(item_list[i]),window_size):
+            if j+window_size-1>=len(item_list[i]):
+                continue
+
+            X_.append(np.vstack(item_list[i][j:j+window_size]))
+       
+            y_.append(item_y[i][j+window_size-1])
+    X_=torch.tensor(X_,device = device)
+    y_=torch.tensor(y_,device = device)
+    return X_, y_
+
+def load_data(interp = False, device = torch.device("cpu"),window_size=1):
     data = pd.read_csv('weatherAUS.csv').replace(('Yes', 'No'), (1, 0))
     if interp:
         data = data.interpolate(method ='pad', limit_direction ='forward')
     data = data.dropna()
-    X = featurize(data.values[:,:-1], device = device)
-    y = torch.tensor(data.values[:,-1:].astype(float), dtype = torch.long, device = device).squeeze(-1)
+    X = featurize(data.values[:,:-1])
+    
+
+    y = torch.tensor(data.values[:,-1:].astype(float), dtype = torch.long).squeeze(-1)
+
+    
+    X, y = Sequential_data(X,y,device,window_size)
+
+    #print(X.shape)
+    #print(y_.shape)
+
     return X, y
 
-def featurize(X_raw, device):
+def featurize(X_raw, device= torch.device("cpu")):
     return torch.tensor(list(map(featurize_one, X_raw)), dtype = torch.float, device = device)
 
 def featurize_one(row):
